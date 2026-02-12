@@ -106,29 +106,6 @@
             z-index: 0;
         }
 
-        /* ============ FLOATING HEARTS ============ */
-        .floating-hearts {
-            position: fixed;
-            inset: 0;
-            z-index: 1;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .heart-particle {
-            position: absolute;
-            font-size: 1.5rem;
-            opacity: 0.4;
-            animation: float-up linear infinite;
-        }
-
-        @keyframes float-up {
-            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.4; }
-            90% { opacity: 0.4; }
-            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
-        }
-
         /* ============ UNIVERSE PORTAL ============ */
         #universe-portal {
             position: fixed;
@@ -617,16 +594,12 @@
     <!-- Basketball Background Canvas -->
     <canvas id="game-canvas"></canvas>
 
-    <!-- Floating Hearts -->
-    <div class="floating-hearts" id="floating-hearts"></div>
-
     <!-- ======= WELCOME SCREEN ======= -->
     <div id="welcome-screen">
         <div class="welcome-title">Happy Valentine's Day</div>
         <div class="welcome-sub">
-            I made this just for you.<br>
-            Spin the reels, unlock our universes,<br>
-            and know that every win is how I feel about you.
+            For my Nino, spin till you win -<br>
+            what you are gonna win? Well me..
         </div>
         <button class="play-btn" id="start-btn">Play My Love</button>
         <div style="margin-top: 40px; opacity: 0.4; font-size: 0.85rem;">
@@ -710,14 +683,14 @@
     // and update the CUSTOM_IMAGES array below with filenames.
     // Example: CUSTOM_IMAGES = ['photo1.jpg', 'photo2.jpg', ...]
 
+    // Place your images in the /images folder with these names:
+    // 1.png, 2.png, 3.png, 4.png (add more if you want!)
+    // Or rename these to match your actual filenames.
     const CUSTOM_IMAGES = [
-        // Add your image filenames here! Place the files in the /images folder.
-        // 'us-together.jpg',
-        // 'our-pet.jpg',
-        // 'favorite-place.jpg',
-        // 'heart-photo.jpg',
-        // 'special-moment.jpg',
-        // 'your-smile.jpg',
+        '1.png',
+        '2.png',
+        '3.png',
+        '4.png',
     ];
 
     // Fallback emoji symbols if no custom images are provided
@@ -811,22 +784,59 @@
     const celebration = document.getElementById('win-celebration');
 
     // ---- INITIALIZE SYMBOLS ----
+    // Tries to load custom images; falls back to emojis if images fail
+    let imagesLoaded = false;
+
     function initSymbols() {
-        if (CUSTOM_IMAGES.length >= 4) {
-            symbols = CUSTOM_IMAGES.map((file, i) => ({
-                type: 'image',
-                src: `images/${file}`,
-                name: `Symbol ${i + 1}`,
-                multiplier: [15, 12, 10, 8, 7, 6, 5, 5][i] || 5
-            }));
-        } else {
-            symbols = EMOJI_SYMBOLS.map(s => ({
-                type: 'emoji',
-                emoji: s.emoji,
-                name: s.name,
-                multiplier: s.multiplier
-            }));
-        }
+        // Start with custom images - they'll be validated on load
+        symbols = CUSTOM_IMAGES.map((file, i) => ({
+            type: 'image',
+            src: `images/${file}`,
+            name: `Photo ${i + 1}`,
+            multiplier: [15, 12, 10, 8, 7, 6, 5, 5][i] || 5
+        }));
+
+        // Pre-test if images actually exist
+        let loaded = 0;
+        let failed = 0;
+        const total = CUSTOM_IMAGES.length;
+
+        CUSTOM_IMAGES.forEach((file, i) => {
+            const img = new Image();
+            img.onload = () => {
+                loaded++;
+                if (loaded + failed === total) {
+                    if (loaded >= 4) {
+                        imagesLoaded = true;
+                    } else {
+                        fallbackToEmojis();
+                    }
+                }
+            };
+            img.onerror = () => {
+                failed++;
+                if (loaded + failed === total) {
+                    if (loaded >= 4) {
+                        // Remove failed ones, keep working ones
+                        symbols = symbols.filter((s, idx) => idx < total);
+                        imagesLoaded = true;
+                    } else {
+                        fallbackToEmojis();
+                    }
+                }
+            };
+            img.src = `images/${file}`;
+        });
+    }
+
+    function fallbackToEmojis() {
+        symbols = EMOJI_SYMBOLS.map(s => ({
+            type: 'emoji',
+            emoji: s.emoji,
+            name: s.name,
+            multiplier: s.multiplier
+        }));
+        buildReels();
     }
 
     // ---- BUILD REELS ----
@@ -1114,45 +1124,10 @@
         }, 3500);
     }
 
-    // ---- FLOATING HEARTS BACKGROUND ----
-    function createFloatingHearts() {
-        const container = document.getElementById('floating-hearts');
-        const heartEmojis = ['&#10084;&#65039;', '&#128150;', '&#128151;', '&#127801;', '&#127936;', '&#11088;'];
-
-        for (let i = 0; i < 20; i++) {
-            const heart = document.createElement('div');
-            heart.className = 'heart-particle';
-            heart.innerHTML = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
-            heart.style.left = Math.random() * 100 + '%';
-            heart.style.fontSize = (Math.random() * 1.5 + 0.8) + 'rem';
-            heart.style.animationDuration = (Math.random() * 8 + 8) + 's';
-            heart.style.animationDelay = (Math.random() * 10) + 's';
-            container.appendChild(heart);
-        }
-    }
-
     // ---- BASKETBALL COURT BACKGROUND (Canvas) ----
     function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-    }
-
-    // Basketball objects floating in background
-    const bgObjects = [];
-    function initBgObjects() {
-        for (let i = 0; i < 8; i++) {
-            bgObjects.push({
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                vx: (Math.random() - 0.5) * 0.5,
-                vy: (Math.random() - 0.5) * 0.5,
-                size: Math.random() * 20 + 15,
-                type: Math.random() > 0.4 ? 'basketball' : 'hoop',
-                rotation: Math.random() * Math.PI * 2,
-                rotSpeed: (Math.random() - 0.5) * 0.02,
-                opacity: Math.random() * 0.15 + 0.05
-            });
-        }
     }
 
     function drawBg() {
@@ -1201,70 +1176,6 @@
         ctx.beginPath();
         ctx.arc(canvas.width - 50, canvas.height / 2, 200, Math.PI * 2 / 3, Math.PI * 4 / 3);
         ctx.stroke();
-
-        // Draw floating basketball objects
-        bgObjects.forEach(obj => {
-            obj.x += obj.vx;
-            obj.y += obj.vy;
-            obj.rotation += obj.rotSpeed;
-
-            // Wrap around screen
-            if (obj.x < -50) obj.x = canvas.width + 50;
-            if (obj.x > canvas.width + 50) obj.x = -50;
-            if (obj.y < -50) obj.y = canvas.height + 50;
-            if (obj.y > canvas.height + 50) obj.y = -50;
-
-            ctx.save();
-            ctx.translate(obj.x, obj.y);
-            ctx.rotate(obj.rotation);
-            ctx.globalAlpha = obj.opacity;
-
-            if (obj.type === 'basketball') {
-                // Draw basketball
-                ctx.beginPath();
-                ctx.arc(0, 0, obj.size, 0, Math.PI * 2);
-                ctx.fillStyle = '#e8751a';
-                ctx.fill();
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                // Lines on basketball
-                ctx.beginPath();
-                ctx.moveTo(-obj.size, 0);
-                ctx.lineTo(obj.size, 0);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(0, -obj.size);
-                ctx.lineTo(0, obj.size);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.arc(0, 0, obj.size * 0.7, -Math.PI / 4, Math.PI / 4);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.arc(0, 0, obj.size * 0.7, Math.PI * 3 / 4, Math.PI * 5 / 4);
-                ctx.stroke();
-            } else {
-                // Draw hoop/rim
-                ctx.beginPath();
-                ctx.ellipse(0, 0, obj.size, obj.size * 0.4, 0, 0, Math.PI * 2);
-                ctx.strokeStyle = '#ff4444';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-                // Net lines
-                for (let n = 0; n < 6; n++) {
-                    const angle = (Math.PI * 2 * n) / 6;
-                    ctx.beginPath();
-                    ctx.moveTo(Math.cos(angle) * obj.size, Math.sin(angle) * obj.size * 0.4);
-                    ctx.lineTo(Math.cos(angle) * obj.size * 0.6, obj.size * 1.2);
-                    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                }
-            }
-
-            ctx.restore();
-        });
     }
 
     function bgLoop() {
@@ -1325,8 +1236,6 @@
         window.addEventListener('resize', resizeCanvas);
         initSymbols();
         buildReels();
-        createFloatingHearts();
-        initBgObjects();
         bgLoop();
         updateUI();
         applyUniverse(0);
