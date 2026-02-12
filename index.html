@@ -560,17 +560,102 @@
         }
 
         /* ============ RESPONSIVE ============ */
+
+        /* Tablets and large phones */
         @media (max-width: 600px) {
             .welcome-title { font-size: 2.2rem; }
-            .machine-title { font-size: 1.4rem; }
-            .reel { width: 95px; height: 260px; }
-            .reel-symbol { width: 95px; height: 86px; }
-            .reel-symbol img { width: 70px; height: 70px; }
-            .reel-symbol .emoji-symbol { font-size: 3rem; }
-            .slot-machine { padding: 20px 15px; }
-            .btn-spin { padding: 14px 35px; font-size: 1.1rem; }
+            .welcome-sub { font-size: 1rem; padding: 0 20px; }
+            .play-btn { padding: 14px 45px; font-size: 1.2rem; }
+
+            /* Stack top bar: universe on top row, bet+credits below */
+            .universe-bar {
+                top: 10px;
+                padding: 5px 14px;
+                gap: 8px;
+                font-size: 0.8rem;
+            }
+            .universe-name { font-size: 0.85rem; }
+            .universe-progress { width: 80px; height: 6px; }
+
+            .bet-display, .credits-display {
+                top: auto;
+                bottom: 75px;
+                padding: 5px 12px;
+                font-size: 0.85rem;
+            }
+            .bet-display { left: 15px; }
+            .credits-display { right: 15px; }
+            .credits-amount { font-size: 1rem; }
+
+            .machine-title { font-size: 1.3rem; }
+            .machine-header { margin-bottom: 10px; }
+            .win-display { height: 28px; font-size: 0.95rem; }
+
+            .slot-machine {
+                padding: 16px 10px;
+                border-radius: 18px;
+                border-width: 2px;
+                width: 98%;
+            }
+
+            .reels-frame { padding: 8px; margin-bottom: 12px; }
+            .reels-container { gap: 5px; }
+
+            .reel {
+                width: calc((100vw - 100px) / 3);
+                max-width: 105px;
+                height: 250px;
+                border-radius: 10px;
+            }
+            .reel::before, .reel::after { height: 60px; }
+
+            .reel-symbol {
+                width: 100%;
+                height: 83px;
+            }
+            .reel-symbol img {
+                width: 68px;
+                height: 68px;
+                border-width: 2px;
+            }
+            .reel-symbol .emoji-symbol { font-size: 2.8rem; }
+
+            .controls { gap: 8px; }
+            .btn-spin { padding: 12px 30px; font-size: 1rem; }
+            .btn-bet { padding: 10px 16px; font-size: 0.9rem; }
+
+            .love-message {
+                font-size: 0.8rem;
+                white-space: normal;
+                text-align: center;
+                width: 90%;
+                bottom: 12px;
+            }
+
             .portal-title { font-size: 2rem; }
-            .universe-bar { font-size: 0.8rem; padding: 6px 14px; }
+            .portal-desc { font-size: 1rem; padding: 0 20px; }
+            .portal-enter-btn { padding: 12px 35px; font-size: 1rem; }
+
+            .music-toggle { width: 40px; height: 40px; font-size: 1.2rem; bottom: 15px; right: 15px; }
+        }
+
+        /* Small phones (iPhone SE, etc.) */
+        @media (max-width: 380px) {
+            .welcome-title { font-size: 1.8rem; }
+            .welcome-sub { font-size: 0.9rem; }
+
+            .reel { height: 210px; }
+            .reel-symbol { height: 70px; }
+            .reel-symbol img { width: 56px; height: 56px; }
+            .reel-symbol .emoji-symbol { font-size: 2.3rem; }
+            .reel::before, .reel::after { height: 45px; }
+
+            .slot-machine { padding: 12px 8px; }
+            .reels-frame { padding: 6px; margin-bottom: 10px; }
+            .machine-title { font-size: 1.1rem; }
+            .win-display { height: 24px; font-size: 0.85rem; }
+            .btn-spin { padding: 10px 25px; font-size: 0.9rem; }
+            .btn-bet { padding: 8px 14px; font-size: 0.85rem; }
         }
     </style>
 </head>
@@ -757,9 +842,13 @@
     let betIndex = 1;
 
     const REEL_SYMBOL_COUNT = 30; // symbols per reel strip
-    const SYMBOL_HEIGHT = 113;
-    const SYMBOL_HEIGHT_MOBILE = 86;
     const VISIBLE_SYMBOLS = 3;
+
+    function getSymbolHeightValue() {
+        if (window.innerWidth <= 380) return 70;
+        if (window.innerWidth <= 600) return 83;
+        return 113;
+    }
 
     // ---- DOM ELEMENTS ----
     const welcomeScreen = document.getElementById('welcome-screen');
@@ -868,7 +957,7 @@
 
     // ---- GET SYMBOL HEIGHT ----
     function getSymbolHeight() {
-        return window.innerWidth <= 600 ? SYMBOL_HEIGHT_MOBILE : SYMBOL_HEIGHT;
+        return getSymbolHeightValue();
     }
 
     // ---- SPIN LOGIC ----
