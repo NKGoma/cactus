@@ -478,6 +478,70 @@
             opacity: 0;
         }
 
+        /* Fireworks canvas */
+        #fireworks-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 55;
+            pointer-events: none;
+            display: none;
+        }
+
+        #fireworks-canvas.active {
+            display: block;
+        }
+
+        /* Screen flash on win */
+        #screen-flash {
+            position: fixed;
+            inset: 0;
+            z-index: 45;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        #screen-flash.flash-small {
+            background: radial-gradient(ellipse at center, rgba(255,215,0,0.3) 0%, transparent 70%);
+            opacity: 1;
+        }
+
+        #screen-flash.flash-jackpot {
+            background: radial-gradient(ellipse at center, rgba(231,76,111,0.5) 0%, rgba(255,215,0,0.3) 40%, transparent 70%);
+            opacity: 1;
+        }
+
+        /* Win text popup */
+        .win-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 56;
+            font-family: 'Pacifico', cursive;
+            font-size: 3rem;
+            color: var(--gold);
+            text-shadow: 0 0 30px rgba(255,215,0,0.8), 0 0 60px rgba(255,215,0,0.4), 2px 2px 0 var(--heart-red);
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            white-space: nowrap;
+        }
+
+        .win-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .win-popup.hide {
+            transform: translate(-50%, -70%) scale(0.5);
+            opacity: 0;
+        }
+
+        @media (max-width: 600px) {
+            .win-popup { font-size: 2rem; }
+        }
+
         /* ============ MUSIC CONTROL ============ */
         .music-toggle {
             position: fixed;
@@ -758,6 +822,9 @@
 
     <!-- Win Celebration Overlay -->
     <div id="win-celebration"></div>
+    <div id="screen-flash"></div>
+    <canvas id="fireworks-canvas"></canvas>
+    <div class="win-popup" id="win-popup"></div>
 
     <script>
     // ========================================================
@@ -1155,13 +1222,271 @@
         updateUI();
     });
 
+    // ---- SOUND EFFECTS (Web Audio API) ----
+    let audioCtx = null;
+
+    function getAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx;
+    }
+
+    function playTone(freq, duration, startTime, type, volume) {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(volume || 0.15, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+    }
+
+    function playWinSound() {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        // Quick ascending happy notes
+        [523, 659, 784, 1047].forEach((freq, i) => {
+            playTone(freq, 0.2, now + i * 0.1, 'sine', 0.12);
+        });
+    }
+
+    function playJackpotSound() {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        // Fanfare: triumphant ascending notes
+        const fanfare = [523, 659, 784, 1047, 784, 1047, 1319];
+        fanfare.forEach((freq, i) => {
+            playTone(freq, 0.25, now + i * 0.12, 'sine', 0.13);
+            playTone(freq * 0.5, 0.25, now + i * 0.12, 'triangle', 0.08);
+        });
+        // "Woohoo" effect - two rising sweeps
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(300, now + 0.9);
+        osc1.frequency.exponentialRampToValueAtTime(900, now + 1.2);
+        gain1.gain.setValueAtTime(0.15, now + 0.9);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now + 0.9);
+        osc1.stop(now + 1.4);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(400, now + 1.3);
+        osc2.frequency.exponentialRampToValueAtTime(1200, now + 1.7);
+        gain2.gain.setValueAtTime(0.15, now + 1.3);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 1.3);
+        osc2.stop(now + 2.0);
+
+        // Sparkle shimmer
+        for (let i = 0; i < 8; i++) {
+            playTone(2000 + Math.random() * 2000, 0.08, now + 1.8 + i * 0.06, 'sine', 0.04);
+        }
+    }
+
+    function playUniverseSound() {
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        // Mystical ascending chord
+        [262, 330, 392, 523, 659, 784, 1047, 1319, 1568].forEach((freq, i) => {
+            playTone(freq, 0.6, now + i * 0.15, 'sine', 0.08);
+            playTone(freq * 1.5, 0.4, now + i * 0.15, 'triangle', 0.04);
+        });
+    }
+
+    // ---- FIREWORKS (Canvas) ----
+    const fwCanvas = document.getElementById('fireworks-canvas');
+    const fwCtx = fwCanvas.getContext('2d');
+    let fireworks = [];
+    let fwParticles = [];
+    let fwRunning = false;
+
+    function resizeFwCanvas() {
+        fwCanvas.width = window.innerWidth;
+        fwCanvas.height = window.innerHeight;
+    }
+
+    function launchFirework(x, targetY, color) {
+        fireworks.push({
+            x: x,
+            y: window.innerHeight,
+            targetY: targetY,
+            speed: 4 + Math.random() * 3,
+            color: color,
+            trail: []
+        });
+    }
+
+    function explodeFirework(x, y, color) {
+        const count = 40 + Math.floor(Math.random() * 30);
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.3;
+            const speed = 1.5 + Math.random() * 4;
+            fwParticles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1,
+                decay: 0.01 + Math.random() * 0.015,
+                color: color,
+                size: 2 + Math.random() * 2
+            });
+        }
+        // Play a pop/crackle
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        // Noise burst for explosion
+        const bufferSize = 4096;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.12, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 3000 + Math.random() * 3000;
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + 0.3);
+    }
+
+    function fwLoop() {
+        if (!fwRunning) return;
+        fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+
+        // Update/draw firework rockets
+        for (let i = fireworks.length - 1; i >= 0; i--) {
+            const fw = fireworks[i];
+            fw.trail.push({ x: fw.x, y: fw.y });
+            if (fw.trail.length > 8) fw.trail.shift();
+            fw.y -= fw.speed;
+            fw.x += (Math.random() - 0.5) * 0.5;
+
+            // Draw trail
+            fw.trail.forEach((p, idx) => {
+                const alpha = idx / fw.trail.length * 0.6;
+                fwCtx.beginPath();
+                fwCtx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                fwCtx.fillStyle = fw.color.replace('1)', alpha + ')');
+                fwCtx.fill();
+            });
+
+            // Draw rocket head
+            fwCtx.beginPath();
+            fwCtx.arc(fw.x, fw.y, 3, 0, Math.PI * 2);
+            fwCtx.fillStyle = '#fff';
+            fwCtx.fill();
+
+            if (fw.y <= fw.targetY) {
+                explodeFirework(fw.x, fw.y, fw.color);
+                fireworks.splice(i, 1);
+            }
+        }
+
+        // Update/draw particles
+        for (let i = fwParticles.length - 1; i >= 0; i--) {
+            const p = fwParticles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.04; // gravity
+            p.vx *= 0.99;
+            p.life -= p.decay;
+
+            if (p.life <= 0) {
+                fwParticles.splice(i, 1);
+                continue;
+            }
+
+            fwCtx.beginPath();
+            fwCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+            fwCtx.fillStyle = p.color.replace('1)', p.life + ')');
+            fwCtx.fill();
+        }
+
+        if (fireworks.length === 0 && fwParticles.length === 0) {
+            fwRunning = false;
+            fwCanvas.classList.remove('active');
+            return;
+        }
+
+        requestAnimationFrame(fwLoop);
+    }
+
+    function startFireworks(count, duration) {
+        resizeFwCanvas();
+        fwCanvas.classList.add('active');
+        fwRunning = true;
+
+        const colors = [
+            'rgba(231,76,111,1)', 'rgba(255,215,0,1)', 'rgba(255,111,183,1)',
+            'rgba(156,39,176,1)', 'rgba(100,181,246,1)', 'rgba(255,23,68,1)',
+            'rgba(255,145,0,1)', 'rgba(0,230,118,1)'
+        ];
+
+        let launched = 0;
+        const interval = setInterval(() => {
+            if (launched >= count) { clearInterval(interval); return; }
+            const x = Math.random() * window.innerWidth * 0.8 + window.innerWidth * 0.1;
+            const targetY = Math.random() * window.innerHeight * 0.4 + window.innerHeight * 0.1;
+            launchFirework(x, targetY, colors[Math.floor(Math.random() * colors.length)]);
+            launched++;
+        }, duration / count);
+
+        requestAnimationFrame(fwLoop);
+    }
+
     // ---- CELEBRATION EFFECTS ----
+    const screenFlash = document.getElementById('screen-flash');
+    const winPopup = document.getElementById('win-popup');
+
     function triggerCelebration(type) {
         celebration.innerHTML = '';
         celebration.classList.add('active');
 
+        // Screen flash
+        screenFlash.className = type === 'jackpot' || type === 'universe' ? 'flash-jackpot' : 'flash-small';
+        setTimeout(() => { screenFlash.className = ''; }, 400);
+
+        // Sound
+        if (type === 'jackpot') {
+            playJackpotSound();
+        } else if (type === 'universe') {
+            playUniverseSound();
+        } else {
+            playWinSound();
+        }
+
+        // Fireworks
+        if (type === 'jackpot') {
+            startFireworks(12, 2500);
+            showWinPopup('JACKPOT!');
+        } else if (type === 'universe') {
+            startFireworks(18, 3000);
+        } else {
+            startFireworks(4, 1000);
+            showWinPopup('Nice!');
+        }
+
+        // Confetti
         const colors = ['#e74c6f', '#ffd700', '#ff6fb7', '#9c27b0', '#64b5f6', '#ff1744'];
-        const count = type === 'jackpot' ? 80 : type === 'universe' ? 120 : 30;
+        const count = type === 'jackpot' ? 80 : type === 'universe' ? 120 : 25;
 
         for (let i = 0; i < count; i++) {
             const piece = document.createElement('div');
@@ -1172,21 +1497,17 @@
             piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
             piece.style.width = (Math.random() * 8 + 4) + 'px';
             piece.style.height = (Math.random() * 8 + 4) + 'px';
-
             const duration = Math.random() * 2 + 1.5;
             const xDrift = (Math.random() - 0.5) * 300;
-            piece.style.animation = `none`;
             piece.style.transition = `all ${duration}s ease`;
-
             celebration.appendChild(piece);
-
             requestAnimationFrame(() => {
                 piece.style.opacity = '1';
                 piece.style.transform = `translateY(${window.innerHeight + 50}px) translateX(${xDrift}px) rotate(${Math.random() * 720}deg)`;
             });
         }
 
-        // Also burst some heart emojis for jackpots
+        // Heart bursts for big wins
         if (type === 'jackpot' || type === 'universe') {
             for (let i = 0; i < 15; i++) {
                 const heart = document.createElement('div');
@@ -1194,11 +1515,10 @@
                 heart.style.left = '50%';
                 heart.style.top = '50%';
                 heart.style.fontSize = (Math.random() * 2 + 1.5) + 'rem';
-                heart.innerHTML = ['&#10084;&#65039;', '&#128150;', '&#128151;', '&#128152;', '&#127801;'][Math.floor(Math.random() * 5)];
+                heart.innerHTML = ['\u2764\uFE0F', '\uD83D\uDC96', '\uD83D\uDC97', '\uD83D\uDC98', '\uD83C\uDF39'][Math.floor(Math.random() * 5)];
                 heart.style.transition = `all ${Math.random() * 1.5 + 1}s ease-out`;
                 heart.style.zIndex = '60';
                 celebration.appendChild(heart);
-
                 requestAnimationFrame(() => {
                     const angle = (Math.PI * 2 * i) / 15;
                     const dist = Math.random() * 200 + 100;
@@ -1212,6 +1532,13 @@
             celebration.classList.remove('active');
             celebration.innerHTML = '';
         }, 3500);
+    }
+
+    function showWinPopup(text) {
+        winPopup.textContent = text;
+        winPopup.className = 'win-popup show';
+        setTimeout(() => { winPopup.className = 'win-popup hide'; }, 1500);
+        setTimeout(() => { winPopup.className = 'win-popup'; }, 2000);
     }
 
     // ---- BASKETBALL COURT BACKGROUND (Canvas) ----
@@ -1323,7 +1650,8 @@
     // ---- INIT ----
     function init() {
         resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        resizeFwCanvas();
+        window.addEventListener('resize', () => { resizeCanvas(); resizeFwCanvas(); });
         initSymbols();
         buildReels();
         bgLoop();
