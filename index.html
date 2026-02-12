@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Slots - For You, My Valentine</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --heart-red: #e74c6f;
+            --deep-pink: #c2185b;
+            --gold: #ffd700;
+            --dark-bg: #1a0a1e;
+            --purple-glow: #9c27b0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            background: var(--dark-bg);
+            color: white;
+            user-select: none;
+        }
+
+        /* ============ WELCOME SCREEN ============ */
+        #welcome-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at center, #2d0a3e 0%, #0d0015 70%);
+            transition: opacity 1.5s ease, transform 1.5s ease;
+        }
+
+        #welcome-screen.fade-out {
+            opacity: 0;
+            transform: scale(1.1);
+            pointer-events: none;
+        }
+
+        .welcome-title {
+            font-family: 'Pacifico', cursive;
+            font-size: 3.5rem;
+            color: var(--heart-red);
+            text-shadow: 0 0 30px rgba(231, 76, 111, 0.6), 0 0 60px rgba(231, 76, 111, 0.3);
+            margin-bottom: 1rem;
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .welcome-sub {
+            font-size: 1.2rem;
+            color: #f8bbd0;
+            margin-bottom: 2.5rem;
+            text-align: center;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .play-btn {
+            padding: 18px 60px;
+            font-size: 1.4rem;
+            font-family: 'Pacifico', cursive;
+            background: linear-gradient(135deg, var(--heart-red), var(--deep-pink));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(231, 76, 111, 0.5), 0 8px 25px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 50px rgba(231, 76, 111, 0.7), 0 12px 35px rgba(0,0,0,0.4);
+        }
+
+        .play-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        /* ============ BASKETBALL BACKGROUND ============ */
+        #game-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* ============ FLOATING HEARTS ============ */
+        .floating-hearts {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .heart-particle {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.4;
+            animation: float-up linear infinite;
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* ============ UNIVERSE PORTAL ============ */
+        #universe-portal {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.95);
+        }
+
+        #universe-portal.active {
+            display: flex;
+            animation: portal-open 0.5s ease;
+        }
+
+        .portal-content {
+            text-align: center;
+        }
+
+        .portal-title {
+            font-family: 'Pacifico', cursive;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: rainbow-text 3s linear infinite;
+        }
+
+        .portal-desc {
+            font-size: 1.2rem;
+            color: #f8bbd0;
+            margin-bottom: 2rem;
+        }
+
+        .portal-enter-btn {
+            padding: 15px 50px;
+            font-size: 1.2rem;
+            font-family: 'Pacifico', cursive;
+            background: linear-gradient(135deg, var(--purple-glow), var(--heart-red));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(156, 39, 176, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .portal-enter-btn:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes portal-open {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* ============ MAIN GAME UI ============ */
+        #game-ui {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #game-ui.active {
+            display: flex;
+        }
+
+        /* Universe indicator */
+        .universe-bar {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            padding: 8px 24px;
+            border-radius: 30px;
+            border: 1px solid rgba(231, 76, 111, 0.3);
+        }
+
+        .universe-name {
+            font-family: 'Pacifico', cursive;
+            font-size: 1.1rem;
+            color: var(--gold);
+        }
+
+        .universe-progress {
+            width: 120px;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .universe-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--heart-red), var(--gold));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Credits display */
+        .credits-display {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .credits-icon {
+            font-size: 1.3rem;
+        }
+
+        .credits-amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        /* Bet display */
+        .bet-display {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(231, 76, 111, 0.3);
+        }
+
+        /* ============ SLOT MACHINE ============ */
+        .slot-machine {
+            position: relative;
+            background: linear-gradient(180deg, #2a0a35 0%, #1a0520 50%, #2a0a35 100%);
+            border-radius: 24px;
+            padding: 30px;
+            border: 3px solid var(--heart-red);
+            box-shadow:
+                0 0 40px rgba(231, 76, 111, 0.3),
+                inset 0 0 40px rgba(0,0,0,0.5),
+                0 20px 60px rgba(0,0,0,0.5);
+            max-width: 520px;
+            width: 95%;
+        }
+
+        .machine-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .machine-title {
+            font-family: 'Pacifico', cursive;
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--heart-red), var(--gold), var(--heart-red));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient-shift 3s ease infinite;
+        }
+
+        .win-display {
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--gold);
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .win-display.big-win {
+            animation: big-win-flash 0.3s ease infinite alternate;
+            font-size: 1.4rem;
+        }
+
+        /* Reels container */
+        .reels-frame {
+            background: rgba(0,0,0,0.6);
+            border-radius: 16px;
+            padding: 12px;
+            border: 2px solid rgba(231, 76, 111, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .reels-container {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .reel {
+            width: 130px;
+            height: 340px;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(26,10,30,0.9), rgba(0,0,0,0.8));
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        /* Reel shadow overlays for depth */
+        .reel::before,
+        .reel::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 80px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .reel::before {
+            top: 0;
+            background: linear-gradient(180deg, rgba(26,10,30,0.9) 0%, transparent 100%);
+        }
+
+        .reel::after {
+            bottom: 0;
+            background: linear-gradient(0deg, rgba(26,10,30,0.9) 0%, transparent 100%);
+        }
+
+        /* Win line indicator */
+        .win-line {
+            position: absolute;
+            top: 50%;
+            left: -5px;
+            right: -5px;
+            height: 3px;
+            background: var(--gold);
+            box-shadow: 0 0 10px var(--gold), 0 0 20px var(--gold);
+            z-index: 3;
+            transform: translateY(-50%);
+            opacity: 0.7;
+        }
+
+        .reel-strip {
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.1s ease;
+        }
+
+        .reel-symbol {
+            width: 130px;
+            height: 113px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .reel-symbol img {
+            max-width: 90px;
+            max-height: 90px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(231, 76, 111, 0.4));
+            border-radius: 12px;
+        }
+
+        .reel-symbol .emoji-symbol {
+            font-size: 4rem;
+            filter: drop-shadow(0 0 8px rgba(231, 76, 111, 0.4));
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-bet {
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 700;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-bet:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: var(--gold);
+        }
+
+        .btn-spin {
+            padding: 16px 50px;
+            font-size: 1.3rem;
+            font-family: 'Pacifico', cursive;
+            background: linear-gradient(135deg, var(--heart-red), #ff1744);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(231, 76, 111, 0.5), 0 6px 20px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-spin:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(231, 76, 111, 0.7), 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        .btn-spin:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-spin.spinning {
+            animation: spin-button-pulse 0.5s ease infinite alternate;
+        }
+
+        /* Love message */
+        .love-message {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Pacifico', cursive;
+            font-size: 1rem;
+            color: rgba(248, 187, 208, 0.6);
+            white-space: nowrap;
+        }
+
+        /* ============ WIN CELEBRATION ============ */
+        #win-celebration {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        #win-celebration.active {
+            display: flex;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            opacity: 0;
+        }
+
+        /* ============ MUSIC CONTROL ============ */
+        .music-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 200;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(231, 76, 111, 0.3);
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .music-toggle:hover {
+            border-color: var(--heart-red);
+            box-shadow: 0 0 15px rgba(231, 76, 111, 0.3);
+        }
+
+        .music-toggle.muted {
+            opacity: 0.5;
+        }
+
+        /* ============ YOUTUBE PLAYER (hidden) ============ */
+        #yt-player {
+            position: fixed;
+            bottom: -1000px;
+            left: -1000px;
+            width: 1px;
+            height: 1px;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* ============ ANIMATIONS ============ */
+        @keyframes pulse-glow {
+            0%, 100% { text-shadow: 0 0 30px rgba(231, 76, 111, 0.6), 0 0 60px rgba(231, 76, 111, 0.3); }
+            50% { text-shadow: 0 0 50px rgba(231, 76, 111, 0.8), 0 0 100px rgba(231, 76, 111, 0.5); }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes big-win-flash {
+            from { color: var(--gold); transform: scale(1); }
+            to { color: #ff1744; transform: scale(1.1); }
+        }
+
+        @keyframes spin-button-pulse {
+            from { box-shadow: 0 0 25px rgba(231, 76, 111, 0.5); }
+            to { box-shadow: 0 0 45px rgba(231, 76, 111, 0.8); }
+        }
+
+        @keyframes rainbow-text {
+            0% { color: #e74c6f; }
+            25% { color: #ffd700; }
+            50% { color: #9c27b0; }
+            75% { color: #ff6fb7; }
+            100% { color: #e74c6f; }
+        }
+
+        @keyframes jackpot-bg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media (max-width: 600px) {
+            .welcome-title { font-size: 2.2rem; }
+            .machine-title { font-size: 1.4rem; }
+            .reel { width: 95px; height: 260px; }
+            .reel-symbol { width: 95px; height: 86px; }
+            .reel-symbol img { max-width: 65px; max-height: 65px; }
+            .reel-symbol .emoji-symbol { font-size: 3rem; }
+            .slot-machine { padding: 20px 15px; }
+            .btn-spin { padding: 14px 35px; font-size: 1.1rem; }
+            .portal-title { font-size: 2rem; }
+            .universe-bar { font-size: 0.8rem; padding: 6px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Music (YouTube Embed) -->
+    <div id="yt-player">
+        <iframe id="yt-iframe"
+            width="1" height="1"
+            src=""
+            frameborder="0"
+            allow="autoplay; encrypted-media"
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    <!-- Music Toggle Button -->
+    <button class="music-toggle" id="music-toggle" title="Toggle Music">
+        <span id="music-icon">&#9835;</span>
+    </button>
+
+    <!-- Basketball Background Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Floating Hearts -->
+    <div class="floating-hearts" id="floating-hearts"></div>
+
+    <!-- ======= WELCOME SCREEN ======= -->
+    <div id="welcome-screen">
+        <div class="welcome-title">Happy Valentine's Day</div>
+        <div class="welcome-sub">
+            I made this just for you.<br>
+            Spin the reels, unlock our universes,<br>
+            and know that every win is how I feel about you.
+        </div>
+        <button class="play-btn" id="start-btn">Play My Love</button>
+        <div style="margin-top: 40px; opacity: 0.4; font-size: 0.85rem;">
+            Made with all my heart
+        </div>
+    </div>
+
+    <!-- ======= UNIVERSE PORTAL ======= -->
+    <div id="universe-portal">
+        <div class="portal-content">
+            <div class="portal-title" id="portal-title">New Universe!</div>
+            <div class="portal-desc" id="portal-desc">You've unlocked a new world...</div>
+            <button class="portal-enter-btn" id="portal-enter-btn">Enter Universe</button>
+        </div>
+    </div>
+
+    <!-- ======= MAIN GAME UI ======= -->
+    <div id="game-ui">
+        <!-- Top bar -->
+        <div class="bet-display">
+            <span>Bet:</span>
+            <span class="credits-amount" id="bet-display">10</span>
+        </div>
+
+        <div class="universe-bar">
+            <span class="universe-name" id="universe-name">Universe 1</span>
+            <div class="universe-progress">
+                <div class="universe-progress-fill" id="universe-progress" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="credits-display">
+            <span class="credits-icon">&#10084;&#65039;</span>
+            <span class="credits-amount" id="credits-display">1000</span>
+        </div>
+
+        <!-- Slot Machine -->
+        <div class="slot-machine">
+            <div class="machine-header">
+                <div class="machine-title" id="machine-title">Love Slots</div>
+                <div class="win-display" id="win-display"></div>
+            </div>
+
+            <div class="reels-frame">
+                <div class="reels-container" id="reels-container">
+                    <div class="reel" id="reel-0">
+                        <div class="win-line"></div>
+                        <div class="reel-strip" id="reel-strip-0"></div>
+                    </div>
+                    <div class="reel" id="reel-1">
+                        <div class="win-line"></div>
+                        <div class="reel-strip" id="reel-strip-1"></div>
+                    </div>
+                    <div class="reel" id="reel-2">
+                        <div class="win-line"></div>
+                        <div class="reel-strip" id="reel-strip-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn-bet" id="btn-bet-down">-</button>
+                <button class="btn-spin" id="btn-spin">Spin!</button>
+                <button class="btn-bet" id="btn-bet-up">+</button>
+            </div>
+        </div>
+
+        <div class="love-message">every spin is a heartbeat for you</div>
+    </div>
+
+    <!-- Win Celebration Overlay -->
+    <div id="win-celebration"></div>
+
+    <script>
+    // ========================================================
+    //  LOVE SLOTS - A Valentine's Frutakia-Style Slot Machine
+    // ========================================================
+
+    // ---- CONFIGURATION ----
+    // To use your own images, place them in the /images folder
+    // and update the CUSTOM_IMAGES array below with filenames.
+    // Example: CUSTOM_IMAGES = ['photo1.jpg', 'photo2.jpg', ...]
+
+    const CUSTOM_IMAGES = [
+        // Add your image filenames here! Place the files in the /images folder.
+        // 'us-together.jpg',
+        // 'our-pet.jpg',
+        // 'favorite-place.jpg',
+        // 'heart-photo.jpg',
+        // 'special-moment.jpg',
+        // 'your-smile.jpg',
+    ];
+
+    // Fallback emoji symbols if no custom images are provided
+    const EMOJI_SYMBOLS = [
+        { emoji: '&#10084;&#65039;', name: 'Heart', multiplier: 10 },
+        { emoji: '&#128139;', name: 'Love Letter', multiplier: 8 },
+        { emoji: '&#127801;', name: 'Rose', multiplier: 6 },
+        { emoji: '&#128142;', name: 'Ring', multiplier: 15 },
+        { emoji: '&#128536;', name: 'Kiss', multiplier: 5 },
+        { emoji: '&#127936;', name: 'Basketball', multiplier: 12 },
+        { emoji: '&#11088;', name: 'Star', multiplier: 7 },
+        { emoji: '&#128150;', name: 'Sparkling Heart', multiplier: 9 },
+    ];
+
+    // Universe definitions
+    const UNIVERSES = [
+        {
+            name: 'First Love',
+            desc: 'Where it all began... every heartbeat syncs with yours.',
+            bg: { primary: '#1a0a1e', secondary: '#2d0a3e', accent: '#e74c6f' },
+            winsNeeded: 0,
+            title: 'Love Slots'
+        },
+        {
+            name: 'Starlight Date',
+            desc: 'A universe where we dance under infinite stars.',
+            bg: { primary: '#0a0a2e', secondary: '#0d1542', accent: '#64b5f6' },
+            winsNeeded: 5,
+            title: 'Starlight Reels'
+        },
+        {
+            name: 'Golden Paradise',
+            desc: 'Everything shines because you make my world golden.',
+            bg: { primary: '#1a1400', secondary: '#2d2200', accent: '#ffd700' },
+            winsNeeded: 12,
+            title: 'Golden Hearts'
+        },
+        {
+            name: 'Rose Garden',
+            desc: 'A garden of roses, each one a reason I love you.',
+            bg: { primary: '#1a0510', secondary: '#330a20', accent: '#ff6fb7' },
+            winsNeeded: 22,
+            title: 'Rose Reels'
+        },
+        {
+            name: 'Eternal Love',
+            desc: 'The final universe... where our love lasts forever.',
+            bg: { primary: '#0d001a', secondary: '#1a0033', accent: '#ce93d8' },
+            winsNeeded: 35,
+            title: 'Eternal Slots'
+        }
+    ];
+
+    // ---- GAME STATE ----
+    let credits = 1000;
+    let bet = 10;
+    let totalWins = 0;
+    let currentUniverse = 0;
+    let spinning = false;
+    let musicPlaying = false;
+    let symbols = [];
+    const BET_LEVELS = [5, 10, 25, 50, 100];
+    let betIndex = 1;
+
+    const REEL_SYMBOL_COUNT = 30; // symbols per reel strip
+    const SYMBOL_HEIGHT = 113;
+    const SYMBOL_HEIGHT_MOBILE = 86;
+    const VISIBLE_SYMBOLS = 3;
+
+    // ---- DOM ELEMENTS ----
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const startBtn = document.getElementById('start-btn');
+    const gameUI = document.getElementById('game-ui');
+    const btnSpin = document.getElementById('btn-spin');
+    const btnBetUp = document.getElementById('btn-bet-up');
+    const btnBetDown = document.getElementById('btn-bet-down');
+    const creditsDisplay = document.getElementById('credits-display');
+    const betDisplay = document.getElementById('bet-display');
+    const winDisplay = document.getElementById('win-display');
+    const universeName = document.getElementById('universe-name');
+    const universeProgress = document.getElementById('universe-progress');
+    const machineTitle = document.getElementById('machine-title');
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    const portal = document.getElementById('universe-portal');
+    const portalTitle = document.getElementById('portal-title');
+    const portalDesc = document.getElementById('portal-desc');
+    const portalEnterBtn = document.getElementById('portal-enter-btn');
+    const musicToggle = document.getElementById('music-toggle');
+    const musicIcon = document.getElementById('music-icon');
+    const celebration = document.getElementById('win-celebration');
+
+    // ---- INITIALIZE SYMBOLS ----
+    function initSymbols() {
+        if (CUSTOM_IMAGES.length >= 4) {
+            symbols = CUSTOM_IMAGES.map((file, i) => ({
+                type: 'image',
+                src: `images/${file}`,
+                name: `Symbol ${i + 1}`,
+                multiplier: [15, 12, 10, 8, 7, 6, 5, 5][i] || 5
+            }));
+        } else {
+            symbols = EMOJI_SYMBOLS.map(s => ({
+                type: 'emoji',
+                emoji: s.emoji,
+                name: s.name,
+                multiplier: s.multiplier
+            }));
+        }
+    }
+
+    // ---- BUILD REELS ----
+    function buildReels() {
+        for (let r = 0; r < 3; r++) {
+            const strip = document.getElementById(`reel-strip-${r}`);
+            strip.innerHTML = '';
+            for (let i = 0; i < REEL_SYMBOL_COUNT; i++) {
+                const sym = symbols[Math.floor(Math.random() * symbols.length)];
+                const div = document.createElement('div');
+                div.className = 'reel-symbol';
+                div.dataset.symbolIndex = symbols.indexOf(sym);
+                if (sym.type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = sym.src;
+                    img.alt = sym.name;
+                    div.appendChild(img);
+                } else {
+                    const span = document.createElement('span');
+                    span.className = 'emoji-symbol';
+                    span.innerHTML = sym.emoji;
+                    div.appendChild(span);
+                }
+                strip.appendChild(div);
+            }
+        }
+    }
+
+    // ---- GET SYMBOL HEIGHT ----
+    function getSymbolHeight() {
+        return window.innerWidth <= 600 ? SYMBOL_HEIGHT_MOBILE : SYMBOL_HEIGHT;
+    }
+
+    // ---- SPIN LOGIC ----
+    function spin() {
+        if (spinning || credits < bet) return;
+        spinning = true;
+        btnSpin.disabled = true;
+        btnSpin.classList.add('spinning');
+        winDisplay.textContent = '';
+        winDisplay.classList.remove('big-win');
+
+        credits -= bet;
+        updateUI();
+
+        const results = [];
+        const sh = getSymbolHeight();
+
+        for (let r = 0; r < 3; r++) {
+            // Pick a random result symbol
+            const resultIndex = Math.floor(Math.random() * symbols.length);
+            results.push(resultIndex);
+
+            const strip = document.getElementById(`reel-strip-${r}`);
+            const targetPos = Math.floor(REEL_SYMBOL_COUNT / 2);
+
+            // Set the target symbol
+            const targetDiv = strip.children[targetPos];
+            targetDiv.dataset.symbolIndex = resultIndex;
+            const sym = symbols[resultIndex];
+            targetDiv.innerHTML = '';
+            if (sym.type === 'image') {
+                const img = document.createElement('img');
+                img.src = sym.src;
+                img.alt = sym.name;
+                targetDiv.appendChild(img);
+            } else {
+                const span = document.createElement('span');
+                span.className = 'emoji-symbol';
+                span.innerHTML = sym.emoji;
+                targetDiv.appendChild(span);
+            }
+
+            // Animate
+            animateReel(r, targetPos, sh, 1500 + r * 400);
+        }
+
+        // Check results after all reels stop
+        setTimeout(() => {
+            checkWin(results);
+            spinning = false;
+            btnSpin.disabled = false;
+            btnSpin.classList.remove('spinning');
+        }, 1500 + 2 * 400 + 600);
+    }
+
+    function animateReel(reelIndex, targetPos, sh, duration) {
+        const strip = document.getElementById(`reel-strip-${reelIndex}`);
+        const startTime = performance.now();
+        // Center the target symbol in the visible area
+        const finalOffset = -(targetPos * sh) + sh;
+
+        // Start from a random offset above
+        const startOffset = finalOffset + (REEL_SYMBOL_COUNT * sh);
+
+        function easeOutBack(t) {
+            const c1 = 1.70158;
+            const c3 = c1 + 1;
+            return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+        }
+
+        function animate(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = easeOutBack(progress);
+
+            const currentOffset = startOffset + (finalOffset - startOffset) * eased;
+            strip.style.transform = `translateY(${currentOffset}px)`;
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    // ---- CHECK WIN ----
+    function checkWin(results) {
+        const [a, b, c] = results;
+
+        if (a === b && b === c) {
+            // JACKPOT - all three match!
+            const sym = symbols[a];
+            const winAmount = bet * sym.multiplier;
+            credits += winAmount;
+            totalWins++;
+            winDisplay.innerHTML = `JACKPOT! +${winAmount} &#10084;&#65039;`;
+            winDisplay.classList.add('big-win');
+            triggerCelebration('jackpot');
+            checkUniverseProgress();
+        } else if (a === b || b === c || a === c) {
+            // Two match - small win
+            let matchSym;
+            if (a === b) matchSym = a;
+            else if (b === c) matchSym = b;
+            else matchSym = a;
+
+            const sym = symbols[matchSym];
+            const winAmount = Math.floor(bet * sym.multiplier * 0.3);
+            credits += winAmount;
+            totalWins++;
+            winDisplay.innerHTML = `Nice! +${winAmount} &#10084;&#65039;`;
+            triggerCelebration('small');
+            checkUniverseProgress();
+        } else {
+            // Show encouraging messages on loss
+            const messages = [
+                'Spin again, my love!',
+                'Lucky next time!',
+                'Keep going!',
+                'Almost there!',
+                'The stars are aligning...',
+                'I believe in you!',
+            ];
+            winDisplay.textContent = messages[Math.floor(Math.random() * messages.length)];
+        }
+
+        updateUI();
+    }
+
+    // ---- UNIVERSE PROGRESSION ----
+    function checkUniverseProgress() {
+        const nextUniverse = currentUniverse + 1;
+        if (nextUniverse < UNIVERSES.length && totalWins >= UNIVERSES[nextUniverse].winsNeeded) {
+            // Unlock next universe!
+            setTimeout(() => {
+                showPortal(nextUniverse);
+            }, 1500);
+        }
+        updateUniverseBar();
+    }
+
+    function showPortal(universeIndex) {
+        const u = UNIVERSES[universeIndex];
+        portalTitle.textContent = u.name;
+        portalDesc.textContent = u.desc;
+        portal.classList.add('active');
+
+        portalEnterBtn.onclick = () => {
+            currentUniverse = universeIndex;
+            portal.classList.remove('active');
+            applyUniverse(universeIndex);
+            triggerCelebration('universe');
+        };
+    }
+
+    function applyUniverse(index) {
+        const u = UNIVERSES[index];
+        universeName.textContent = u.name;
+        machineTitle.textContent = u.title;
+        updateUniverseBar();
+    }
+
+    function updateUniverseBar() {
+        const current = UNIVERSES[currentUniverse];
+        const next = UNIVERSES[currentUniverse + 1];
+        if (next) {
+            const needed = next.winsNeeded - current.winsNeeded;
+            const progress = totalWins - current.winsNeeded;
+            const pct = Math.min((progress / needed) * 100, 100);
+            universeProgress.style.width = pct + '%';
+        } else {
+            universeProgress.style.width = '100%';
+        }
+    }
+
+    // ---- UPDATE UI ----
+    function updateUI() {
+        creditsDisplay.textContent = credits;
+        betDisplay.textContent = bet;
+    }
+
+    // ---- BET CONTROLS ----
+    btnBetUp.addEventListener('click', () => {
+        if (spinning) return;
+        betIndex = Math.min(betIndex + 1, BET_LEVELS.length - 1);
+        bet = BET_LEVELS[betIndex];
+        updateUI();
+    });
+
+    btnBetDown.addEventListener('click', () => {
+        if (spinning) return;
+        betIndex = Math.max(betIndex - 1, 0);
+        bet = BET_LEVELS[betIndex];
+        updateUI();
+    });
+
+    // ---- CELEBRATION EFFECTS ----
+    function triggerCelebration(type) {
+        celebration.innerHTML = '';
+        celebration.classList.add('active');
+
+        const colors = ['#e74c6f', '#ffd700', '#ff6fb7', '#9c27b0', '#64b5f6', '#ff1744'];
+        const count = type === 'jackpot' ? 80 : type === 'universe' ? 120 : 30;
+
+        for (let i = 0; i < count; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.top = '-10px';
+            piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            piece.style.width = (Math.random() * 8 + 4) + 'px';
+            piece.style.height = (Math.random() * 8 + 4) + 'px';
+
+            const duration = Math.random() * 2 + 1.5;
+            const xDrift = (Math.random() - 0.5) * 300;
+            piece.style.animation = `none`;
+            piece.style.transition = `all ${duration}s ease`;
+
+            celebration.appendChild(piece);
+
+            requestAnimationFrame(() => {
+                piece.style.opacity = '1';
+                piece.style.transform = `translateY(${window.innerHeight + 50}px) translateX(${xDrift}px) rotate(${Math.random() * 720}deg)`;
+            });
+        }
+
+        // Also burst some heart emojis for jackpots
+        if (type === 'jackpot' || type === 'universe') {
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.style.position = 'absolute';
+                heart.style.left = '50%';
+                heart.style.top = '50%';
+                heart.style.fontSize = (Math.random() * 2 + 1.5) + 'rem';
+                heart.innerHTML = ['&#10084;&#65039;', '&#128150;', '&#128151;', '&#128152;', '&#127801;'][Math.floor(Math.random() * 5)];
+                heart.style.transition = `all ${Math.random() * 1.5 + 1}s ease-out`;
+                heart.style.zIndex = '60';
+                celebration.appendChild(heart);
+
+                requestAnimationFrame(() => {
+                    const angle = (Math.PI * 2 * i) / 15;
+                    const dist = Math.random() * 200 + 100;
+                    heart.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px) scale(0)`;
+                    heart.style.opacity = '0';
+                });
+            }
+        }
+
+        setTimeout(() => {
+            celebration.classList.remove('active');
+            celebration.innerHTML = '';
+        }, 3500);
+    }
+
+    // ---- FLOATING HEARTS BACKGROUND ----
+    function createFloatingHearts() {
+        const container = document.getElementById('floating-hearts');
+        const heartEmojis = ['&#10084;&#65039;', '&#128150;', '&#128151;', '&#127801;', '&#127936;', '&#11088;'];
+
+        for (let i = 0; i < 20; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'heart-particle';
+            heart.innerHTML = heartEmojis[Math.floor(Math.random() * heartEmojis.length)];
+            heart.style.left = Math.random() * 100 + '%';
+            heart.style.fontSize = (Math.random() * 1.5 + 0.8) + 'rem';
+            heart.style.animationDuration = (Math.random() * 8 + 8) + 's';
+            heart.style.animationDelay = (Math.random() * 10) + 's';
+            container.appendChild(heart);
+        }
+    }
+
+    // ---- BASKETBALL COURT BACKGROUND (Canvas) ----
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    // Basketball objects floating in background
+    const bgObjects = [];
+    function initBgObjects() {
+        for (let i = 0; i < 8; i++) {
+            bgObjects.push({
+                x: Math.random() * window.innerWidth,
+                y: Math.random() * window.innerHeight,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                size: Math.random() * 20 + 15,
+                type: Math.random() > 0.4 ? 'basketball' : 'hoop',
+                rotation: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 0.02,
+                opacity: Math.random() * 0.15 + 0.05
+            });
+        }
+    }
+
+    function drawBg() {
+        const u = UNIVERSES[currentUniverse];
+        // Background gradient
+        const grad = ctx.createRadialGradient(
+            canvas.width / 2, canvas.height / 2, 0,
+            canvas.width / 2, canvas.height / 2, canvas.width * 0.7
+        );
+        grad.addColorStop(0, u.bg.secondary);
+        grad.addColorStop(1, u.bg.primary);
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Court lines (subtle)
+        ctx.strokeStyle = `${u.bg.accent}15`;
+        ctx.lineWidth = 2;
+
+        // Center circle
+        ctx.beginPath();
+        ctx.arc(canvas.width / 2, canvas.height / 2, 120, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Half court line
+        ctx.beginPath();
+        ctx.moveTo(canvas.width / 2, 0);
+        ctx.lineTo(canvas.width / 2, canvas.height);
+        ctx.stroke();
+
+        // Court outline
+        ctx.strokeStyle = `${u.bg.accent}10`;
+        ctx.strokeRect(50, 50, canvas.width - 100, canvas.height - 100);
+
+        // Free throw circles
+        ctx.beginPath();
+        ctx.arc(150, canvas.height / 2, 80, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(canvas.width - 150, canvas.height / 2, 80, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Three-point arcs
+        ctx.beginPath();
+        ctx.arc(50, canvas.height / 2, 200, -Math.PI / 3, Math.PI / 3);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(canvas.width - 50, canvas.height / 2, 200, Math.PI * 2 / 3, Math.PI * 4 / 3);
+        ctx.stroke();
+
+        // Draw floating basketball objects
+        bgObjects.forEach(obj => {
+            obj.x += obj.vx;
+            obj.y += obj.vy;
+            obj.rotation += obj.rotSpeed;
+
+            // Wrap around screen
+            if (obj.x < -50) obj.x = canvas.width + 50;
+            if (obj.x > canvas.width + 50) obj.x = -50;
+            if (obj.y < -50) obj.y = canvas.height + 50;
+            if (obj.y > canvas.height + 50) obj.y = -50;
+
+            ctx.save();
+            ctx.translate(obj.x, obj.y);
+            ctx.rotate(obj.rotation);
+            ctx.globalAlpha = obj.opacity;
+
+            if (obj.type === 'basketball') {
+                // Draw basketball
+                ctx.beginPath();
+                ctx.arc(0, 0, obj.size, 0, Math.PI * 2);
+                ctx.fillStyle = '#e8751a';
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Lines on basketball
+                ctx.beginPath();
+                ctx.moveTo(-obj.size, 0);
+                ctx.lineTo(obj.size, 0);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, -obj.size);
+                ctx.lineTo(0, obj.size);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, obj.size * 0.7, -Math.PI / 4, Math.PI / 4);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, obj.size * 0.7, Math.PI * 3 / 4, Math.PI * 5 / 4);
+                ctx.stroke();
+            } else {
+                // Draw hoop/rim
+                ctx.beginPath();
+                ctx.ellipse(0, 0, obj.size, obj.size * 0.4, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ff4444';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                // Net lines
+                for (let n = 0; n < 6; n++) {
+                    const angle = (Math.PI * 2 * n) / 6;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * obj.size, Math.sin(angle) * obj.size * 0.4);
+                    ctx.lineTo(Math.cos(angle) * obj.size * 0.6, obj.size * 1.2);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            }
+
+            ctx.restore();
+        });
+    }
+
+    function bgLoop() {
+        drawBg();
+        requestAnimationFrame(bgLoop);
+    }
+
+    // ---- MUSIC ----
+    function startMusic() {
+        const iframe = document.getElementById('yt-iframe');
+        // Use YouTube embed with autoplay, loop, and playlist for continuous play
+        iframe.src = 'https://www.youtube.com/embed/XXYlFuWEuKI?autoplay=1&loop=1&playlist=XXYlFuWEuKI&controls=0&showinfo=0&rel=0&mute=0&enablejsapi=1';
+        musicPlaying = true;
+        musicIcon.innerHTML = '&#9835;';
+        musicToggle.classList.remove('muted');
+    }
+
+    function toggleMusic() {
+        const iframe = document.getElementById('yt-iframe');
+        if (musicPlaying) {
+            iframe.src = '';
+            musicPlaying = false;
+            musicIcon.innerHTML = '&#128263;';
+            musicToggle.classList.add('muted');
+        } else {
+            startMusic();
+        }
+    }
+
+    musicToggle.addEventListener('click', toggleMusic);
+
+    // ---- START GAME ----
+    startBtn.addEventListener('click', () => {
+        welcomeScreen.classList.add('fade-out');
+        setTimeout(() => {
+            welcomeScreen.style.display = 'none';
+            gameUI.classList.add('active');
+        }, 1500);
+
+        // Start music on user interaction (required for autoplay policy)
+        startMusic();
+    });
+
+    // ---- SPIN BUTTON ----
+    btnSpin.addEventListener('click', spin);
+
+    // Spacebar to spin
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !spinning && gameUI.classList.contains('active')) {
+            e.preventDefault();
+            spin();
+        }
+    });
+
+    // ---- INIT ----
+    function init() {
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        initSymbols();
+        buildReels();
+        createFloatingHearts();
+        initBgObjects();
+        bgLoop();
+        updateUI();
+        applyUniverse(0);
+    }
+
+    init();
+    </script>
+</body>
+</html>
