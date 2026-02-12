@@ -25,6 +25,7 @@
             font-family: 'Poppins', sans-serif;
             overflow: hidden;
             height: 100vh;
+            height: 100dvh;
             width: 100vw;
             background: var(--dark-bg);
             color: white;
@@ -171,6 +172,9 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
         }
 
         #game-ui.active {
@@ -252,6 +256,11 @@
             padding: 8px 20px;
             border-radius: 30px;
             border: 1px solid rgba(231, 76, 111, 0.3);
+        }
+
+        /* Info row (mobile layout helper) */
+        .info-row {
+            display: contents;
         }
 
         /* ============ SLOT MACHINE ============ */
@@ -627,114 +636,134 @@
 
         /* Tablets and large phones */
         @media (max-width: 600px) {
+            body { overflow: hidden; }
+
             .welcome-title { font-size: 2.2rem; }
             .welcome-sub { font-size: 1rem; padding: 0 20px; }
             .play-btn { padding: 14px 45px; font-size: 1.2rem; }
 
-            /* Stack top bar: universe on top row, bet+credits below */
+            #game-ui {
+                justify-content: flex-start;
+                padding: 10px 8px;
+                padding-top: 50px;
+                padding-bottom: 10px;
+            }
+
+            /* Top bar: universe centered on top */
             .universe-bar {
-                top: 10px;
-                padding: 5px 14px;
-                gap: 8px;
-                font-size: 0.8rem;
+                top: 8px;
+                padding: 4px 12px;
+                gap: 6px;
+                font-size: 0.75rem;
             }
-            .universe-name { font-size: 0.85rem; }
-            .universe-progress { width: 80px; height: 6px; }
+            .universe-name { font-size: 0.8rem; }
+            .universe-progress { width: 70px; height: 5px; }
 
+            /* Bet + Credits: inline inside the machine, not absolute */
             .bet-display, .credits-display {
-                top: auto;
-                bottom: 75px;
-                padding: 5px 12px;
-                font-size: 0.85rem;
+                position: static;
+                padding: 4px 10px;
+                font-size: 0.8rem;
+                border-radius: 20px;
             }
-            .bet-display { left: 15px; }
-            .credits-display { right: 15px; }
-            .credits-amount { font-size: 1rem; }
+            .credits-amount { font-size: 0.9rem; }
 
-            .machine-title { font-size: 1.3rem; }
-            .machine-header { margin-bottom: 10px; }
-            .win-display { height: 28px; font-size: 0.95rem; }
+            /* Info row above machine */
+            .info-row {
+                display: flex;
+                justify-content: space-between;
+                width: 98%;
+                max-width: 400px;
+                margin-bottom: 6px;
+            }
+
+            .machine-title { font-size: 1.2rem; }
+            .machine-header { margin-bottom: 6px; }
+            .win-display { height: 24px; font-size: 0.9rem; margin-top: 2px; }
 
             .slot-machine {
-                padding: 16px 10px;
-                border-radius: 18px;
+                padding: 12px 8px;
+                border-radius: 16px;
                 border-width: 2px;
                 width: 98%;
+                max-width: 400px;
             }
 
-            .reels-frame { padding: 8px; margin-bottom: 12px; }
-            .reels-container { gap: 5px; }
+            .reels-frame { padding: 6px; margin-bottom: 10px; }
+            .reels-container { gap: 4px; }
 
             .reel {
-                width: calc((100vw - 100px) / 3);
-                max-width: 105px;
-                height: 250px;
+                width: calc((100vw - 80px) / 3);
+                max-width: 110px;
+                height: 220px;
                 border-radius: 10px;
             }
-            .reel::before, .reel::after { height: 60px; }
+            .reel::before, .reel::after { height: 50px; }
 
             .reel-symbol {
                 width: 100%;
-                height: 83px;
+                height: 73px;
             }
             .reel-symbol img {
-                width: 68px;
-                height: 68px;
+                width: 60px;
+                height: 60px;
                 border-width: 2px;
             }
-            .reel-symbol .emoji-symbol { font-size: 2.8rem; }
+            .reel-symbol .emoji-symbol { font-size: 2.5rem; }
 
-            .controls { gap: 8px; }
-            .btn-spin { padding: 12px 30px; font-size: 1rem; }
-            .btn-bet { padding: 10px 16px; font-size: 0.9rem; }
+            .controls { gap: 8px; margin-top: 2px; }
+            .btn-spin { padding: 10px 28px; font-size: 1rem; }
+            .btn-bet { padding: 8px 14px; font-size: 0.9rem; }
 
             .love-message {
-                font-size: 0.8rem;
+                position: static;
+                transform: none;
+                font-size: 0.75rem;
                 white-space: normal;
                 text-align: center;
-                width: 90%;
-                bottom: 12px;
+                margin-top: 8px;
             }
 
             .portal-title { font-size: 2rem; }
             .portal-desc { font-size: 1rem; padding: 0 20px; }
             .portal-enter-btn { padding: 12px 35px; font-size: 1rem; }
 
-            .music-toggle { width: 40px; height: 40px; font-size: 1.2rem; bottom: 15px; right: 15px; }
+            .music-toggle { width: 38px; height: 38px; font-size: 1.1rem; bottom: 12px; right: 12px; }
         }
 
-        /* Small phones (iPhone SE, etc.) */
+        /* Small phones (iPhone SE, Galaxy S, etc.) */
         @media (max-width: 380px) {
             .welcome-title { font-size: 1.8rem; }
-            .welcome-sub { font-size: 0.9rem; }
+            .welcome-sub { font-size: 0.85rem; }
+            .play-btn { padding: 12px 35px; font-size: 1rem; }
 
-            .reel { height: 210px; }
-            .reel-symbol { height: 70px; }
-            .reel-symbol img { width: 56px; height: 56px; }
-            .reel-symbol .emoji-symbol { font-size: 2.3rem; }
-            .reel::before, .reel::after { height: 45px; }
+            #game-ui { padding-top: 42px; }
+            .universe-bar { padding: 3px 10px; }
 
-            .slot-machine { padding: 12px 8px; }
-            .reels-frame { padding: 6px; margin-bottom: 10px; }
-            .machine-title { font-size: 1.1rem; }
-            .win-display { height: 24px; font-size: 0.85rem; }
-            .btn-spin { padding: 10px 25px; font-size: 0.9rem; }
-            .btn-bet { padding: 8px 14px; font-size: 0.85rem; }
+            .reel { height: 180px; }
+            .reel-symbol { height: 60px; }
+            .reel-symbol img { width: 48px; height: 48px; }
+            .reel-symbol .emoji-symbol { font-size: 2rem; }
+            .reel::before, .reel::after { height: 35px; }
+
+            .slot-machine { padding: 10px 6px; }
+            .reels-frame { padding: 5px; margin-bottom: 8px; }
+            .machine-title { font-size: 1rem; }
+            .machine-header { margin-bottom: 4px; }
+            .win-display { height: 20px; font-size: 0.8rem; }
+            .btn-spin { padding: 8px 22px; font-size: 0.85rem; }
+            .btn-bet { padding: 6px 12px; font-size: 0.8rem; }
+            .love-message { font-size: 0.7rem; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Background Music (YouTube Embed) -->
-    <div id="yt-player">
-        <iframe id="yt-iframe"
-            width="1" height="1"
-            src=""
-            frameborder="0"
-            allow="autoplay; encrypted-media"
-            allowfullscreen>
-        </iframe>
+    <!-- Background Music (YouTube IFrame API) -->
+    <div id="yt-player-container" style="position:fixed;bottom:-200px;left:-200px;width:1px;height:1px;overflow:hidden;pointer-events:none;">
+        <div id="yt-player-div"></div>
     </div>
+    <script src="https://www.youtube.com/iframe_api"></script>
 
     <!-- Music Toggle Button -->
     <button class="music-toggle" id="music-toggle" title="Toggle Music">
@@ -768,12 +797,7 @@
 
     <!-- ======= MAIN GAME UI ======= -->
     <div id="game-ui">
-        <!-- Top bar -->
-        <div class="bet-display">
-            <span>Bet:</span>
-            <span class="credits-amount" id="bet-display">10</span>
-        </div>
-
+        <!-- Universe bar (always top center) -->
         <div class="universe-bar">
             <span class="universe-name" id="universe-name">Universe 1</span>
             <div class="universe-progress">
@@ -781,9 +805,16 @@
             </div>
         </div>
 
-        <div class="credits-display">
-            <span class="credits-icon">&#10084;&#65039;</span>
-            <span class="credits-amount" id="credits-display">1000</span>
+        <!-- Bet + Credits row (flows inline on mobile, absolute on desktop) -->
+        <div class="info-row">
+            <div class="bet-display">
+                <span>Bet:</span>
+                <span class="credits-amount" id="bet-display">10</span>
+            </div>
+            <div class="credits-display">
+                <span class="credits-icon">&#10084;&#65039;</span>
+                <span class="credits-amount" id="credits-display">1000</span>
+            </div>
         </div>
 
         <!-- Slot Machine -->
@@ -912,8 +943,8 @@
     const VISIBLE_SYMBOLS = 3;
 
     function getSymbolHeightValue() {
-        if (window.innerWidth <= 380) return 70;
-        if (window.innerWidth <= 600) return 83;
+        if (window.innerWidth <= 380) return 60;
+        if (window.innerWidth <= 600) return 73;
         return 113;
     }
 
@@ -1600,20 +1631,58 @@
         requestAnimationFrame(bgLoop);
     }
 
-    // ---- MUSIC ----
+    // ---- MUSIC (YouTube IFrame Player API) ----
+    let ytPlayer = null;
+    let ytReady = false;
+    let ytPendingPlay = false;
+
+    // Called automatically by YouTube IFrame API when ready
+    window.onYouTubeIframeAPIReady = function() {
+        ytPlayer = new YT.Player('yt-player-div', {
+            height: '1',
+            width: '1',
+            videoId: 'XXYlFuWEuKI',
+            playerVars: {
+                autoplay: 0,
+                loop: 1,
+                playlist: 'XXYlFuWEuKI',
+                controls: 0,
+                showinfo: 0,
+                rel: 0,
+                playsinline: 1 // Critical for iOS
+            },
+            events: {
+                onReady: function() {
+                    ytReady = true;
+                    if (ytPendingPlay) {
+                        ytPlayer.playVideo();
+                        ytPendingPlay = false;
+                    }
+                },
+                onStateChange: function(event) {
+                    // Loop: when video ends, play again
+                    if (event.data === YT.PlayerState.ENDED) {
+                        ytPlayer.playVideo();
+                    }
+                }
+            }
+        });
+    };
+
     function startMusic() {
-        const iframe = document.getElementById('yt-iframe');
-        // Use YouTube embed with autoplay, loop, and playlist for continuous play
-        iframe.src = 'https://www.youtube.com/embed/XXYlFuWEuKI?autoplay=1&loop=1&playlist=XXYlFuWEuKI&controls=0&showinfo=0&rel=0&mute=0&enablejsapi=1';
+        if (ytReady && ytPlayer) {
+            ytPlayer.playVideo();
+        } else {
+            ytPendingPlay = true;
+        }
         musicPlaying = true;
         musicIcon.innerHTML = '&#9835;';
         musicToggle.classList.remove('muted');
     }
 
     function toggleMusic() {
-        const iframe = document.getElementById('yt-iframe');
         if (musicPlaying) {
-            iframe.src = '';
+            if (ytPlayer && ytReady) ytPlayer.pauseVideo();
             musicPlaying = false;
             musicIcon.innerHTML = '&#128263;';
             musicToggle.classList.add('muted');
